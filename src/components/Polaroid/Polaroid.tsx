@@ -13,10 +13,8 @@ interface PolaroidProps {
 export const Polaroid = ({ id, src, alt, caption }: PolaroidProps) => {
 
   const cardRef = useRef(null);
-  const [isFlipped, setIsFlipped] = useState(false);
   const [dragStart, setDragStart] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStartRotation, setDragStartRotation] = useState(0);
   const [hasDragged, setHasDragged] = useState(false);
   const [currentRotation, setCurrentRotation] = useState(0);
 
@@ -32,8 +30,6 @@ export const Polaroid = ({ id, src, alt, caption }: PolaroidProps) => {
       }
 
       const rotation = currentRotation + (rawDragDistance * 0.5);
-      console.log(rotation);
-
       gsap.set(cardRef.current, {
         rotationY: rotation,
       });
@@ -66,7 +62,7 @@ export const Polaroid = ({ id, src, alt, caption }: PolaroidProps) => {
       window.removeEventListener('pointerup', handleGlobalDragEnd);
     };
 
-  }, [isDragging, hasDragged, dragStart, dragStartRotation])
+  }, [isDragging, hasDragged, dragStart])
 
   const handleDragStart = (e: React.PointerEvent) => {
     setIsDragging(true);
