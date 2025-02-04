@@ -19,23 +19,19 @@ export const Polaroid = ({ id, src, alt, caption }: PolaroidProps) => {
   const [dragStartRotation, setDragStartRotation] = useState(0);
   const [hasDragged, setHasDragged] = useState(false);
   const [currentRotation, setCurrentRotation] = useState(0);
-  const [isFlipCooldown, setIsFlipCooldown] = useState(false);
 
   useEffect(() => {
     if (!isDragging) return;
 
     const handleGlobalDrag = (e: PointerEvent) => {
       const rawDragDistance = e.clientX - dragStart;
-      console.log('rawDragDistance', rawDragDistance);
 
       // Check if the user is dragging.
       if (Math.abs(rawDragDistance) > 5) {
         setHasDragged(true);
-        console.log('hasDragged', hasDragged);
       }
 
-      const rotation = dragStartRotation + (rawDragDistance * 0.5);
-
+      const rotation = (dragStartRotation + (rawDragDistance * 0.5)) % 360;
       gsap.set(cardRef.current, {
         rotationY: rotation,
       });
@@ -58,17 +54,17 @@ export const Polaroid = ({ id, src, alt, caption }: PolaroidProps) => {
         const direction = rawDragDistance > 0 ? 1 : -1;
         const targetRotation = dragStartRotation + (180 * direction);
 
+
+        // setCurrentRotation(targetRotation % 360);
         gsap.to(cardRef.current, {
           rotationY: targetRotation,
           duration: 0.2,
           ease: "power2.out",
-          onComplete: () => {
-            setIsFlipped(Math.abs(targetRotation % 360) === 180);
+          onUpdate: () => {
+            setCurrentRotation(targetRotation % 360);
           }
         });
       }
-
-      console.log('hasDragged', hasDragged);
     }
 
     window.addEventListener('pointermove', handleGlobalDrag);
@@ -82,6 +78,8 @@ export const Polaroid = ({ id, src, alt, caption }: PolaroidProps) => {
   }, [isDragging, hasDragged, dragStart, dragStartRotation])
 
   const handleDragStart = (e: React.PointerEvent) => {
+    console.log("test")
+    console.log(currentRotation)
     setIsDragging(true);
     setHasDragged(false);
     setDragStart(e.clientX);
