@@ -1,14 +1,8 @@
 'use client'
+import { gsap } from "gsap";
 import Image from "next/image";
 import React, { useRef, useState, useEffect } from "react";
-import { gsap } from "gsap";
-
-interface PolaroidProps {
-  id: string;
-  src: string;
-  alt: string;
-  caption?: string;
-}
+import { PolaroidProps } from "./types";
 
 export const Polaroid = ({ id, src, alt, caption }: PolaroidProps) => {
 
@@ -72,7 +66,7 @@ export const Polaroid = ({ id, src, alt, caption }: PolaroidProps) => {
 
   return (
     <div ref={cardRef}
-      onPointerDown={handleDragStart}
+      // onPointerDown={handleDragStart}
       className='polaroid bg-white p-4 pb-16 w-[300px] shadow-lg select-none touch-none cursor-grab active:cursor-grabbing'
       id={id}
       style={{ transformStyle: 'preserve-3d' }}
