@@ -10,6 +10,7 @@ export function PolaroidGrid({ polaroids }: PolaroidGridProps) {
 
   const [selectedPolaroid, setSelectedPolaroid] = useState<PolaroidProps | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [shouldResetFlip, setShouldResetFlip] = useState(false);
   const gridItemsRef = useRef<(HTMLDivElement | null)[]>([]);
   const modalContentRef = useRef<HTMLDivElement>(null);
 
@@ -39,33 +40,41 @@ export function PolaroidGrid({ polaroids }: PolaroidGridProps) {
   const handleModalClose = (gridItem: Element  | null | undefined) => {
     if (!gridItem || isAnimating) return;
     setIsAnimating(true);
+    setShouldResetFlip(true);
 
     const index = Number(gridItem.getAttribute('data-index'));
     const originalParent = gridItemsRef.current[index];
 
     if (originalParent) {
-      // Move back to original container
-      gsap.set(gridItem, {
+      const tl = gsap.timeline({
+        onComplete: () => {
+          setIsAnimating(false);
+          setShouldResetFlip(false);
+        }
+      })
+
+     tl.set(gridItem, {
         zIndex: 1000,
-        position: 'relative'  // Add relative positioning
+        position: 'relative'
       });
+
       originalParent.appendChild(gridItem);
 
-      // Animate back to grid position
-      gsap.to(gridItem, {
+      tl.to(gridItem, {
+        rotationY: 0,
+        duration: 0.3,
+      })
+
+      tl.to(gridItem, {
         scale: 1,
         duration: 0.3,
         ease: "power2.inOut",
         onComplete: () => {
-          // Only reset z-index after animation completes
           gsap.to(gridItem, {
             position: 'relative',
             zIndex: 1,
             duration: 0,
-            clearProps: "transform, position", // Clear transform properties
-            onComplete: () => {
-              setIsAnimating(false);
-            }
+            clearProps: "transform, position",
           });
         }
       });
@@ -88,6 +97,8 @@ export function PolaroidGrid({ polaroids }: PolaroidGridProps) {
             src={polaroid.src}
             alt={polaroid.alt}
             caption={polaroid.caption}
+            isDraggable={selectedPolaroid?.id === polaroid.id}
+            resetFlip={shouldResetFlip}
           />
         </div>
       ))}

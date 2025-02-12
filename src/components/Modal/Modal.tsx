@@ -13,22 +13,23 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(({ isOpen, onClose }
         {opacity: 0},
         {opacity: 1, duration: 0.5})
     }
-  }, [isOpen, ref]);
+  }, [isOpen]);
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center"
-      onClick={onClose}
       style={{ display: isOpen ? 'flex' : 'none' }}>
 
       <div
         ref={overlayRef}
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"/>
+        onClick={onClose}
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm z-40"/>
 
       <div
         ref={ref}
-        className="relative z-10"
-        onClick={(e) => e.stopPropagation()}>
+        className="relative z-50"
+        onClick={(e) => e.stopPropagation()}
+        >
       </div>
     </div>
   );

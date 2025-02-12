@@ -3,4 +3,6 @@ export interface PolaroidProps {
     src: string;
     alt: string;
     caption?: string;
+    isDraggable?: boolean;
+    resetFlip?: boolean;
 }
