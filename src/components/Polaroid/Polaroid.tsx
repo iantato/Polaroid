@@ -52,7 +52,6 @@ export const Polaroid = ({ id, src, alt, caption, isDraggable = false, resetFlip
           const baseRotation = isFlipped ? 180 : 0;
           const rotation = baseRotation + (dragDistance * 0.5);
           let targetRotation = 0;
-          console.log(rotation);
 
           // Smoother animation with better easing
           if (rotation >= 40 && !isFlipped) {
