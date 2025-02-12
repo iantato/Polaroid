@@ -65,13 +65,6 @@ export const Polaroid = ({ id, src, alt, caption }: PolaroidProps) => {
 
   const polaroidRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (polaroidRef.current && Math.random() < 0.4) {
-      const rotation = (Math.random() - 0.5) * 10;
-      polaroidRef.current.style.transform = `rotate(${rotation}deg)`;
-    }
-  }, []);
-
   return (
     <div
       ref={polaroidRef}
@@ -83,6 +76,7 @@ export const Polaroid = ({ id, src, alt, caption }: PolaroidProps) => {
           fill
           draggable={false}
           className="object-cover select-none"
+          sizes="500px"
         />
       </div>
     </div>

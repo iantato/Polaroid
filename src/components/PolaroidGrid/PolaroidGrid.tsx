@@ -5,30 +5,80 @@ import { Polaroid } from "../Polaroid";
 import { PolaroidProps } from "../Polaroid/types";
 import { PolaroidGridProps } from "./types";
 import gsap from 'gsap';
+import { Flip } from "gsap/dist/Flip";
 
 export function PolaroidGrid({ polaroids }: PolaroidGridProps) {
+  gsap.registerPlugin(Flip);
+
   const [selectedPolaroid, setSelectedPolaroid] = useState<PolaroidProps | null>(null);
-  const gridItemsRef = useRef<(HTMLDivElement | null)[]>([null]);
+  const gridItemsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const modalContentRef = useRef<HTMLDivElement>(null);
 
   const handlePolaroidClick = (polaroid: PolaroidProps, index: number) => {
-    const gridItem = gridItemsRef.current[index];
-    if (gridItem) {
-      const rect = gridItem.getBoundingClientRect();
-      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const gridItem = gridItemsRef.current[index]?.querySelector('.polaroid');
 
-      setSelectedPolaroid(polaroid);
+    if (gridItem && modalContentRef.current) {
 
-      // gridItemsRef.current.forEach((item, i) => {
-      //   // Fade in background
-      //   if (i == index && item) {
-      //     gsap.to(item, {
-      //       duration: 0.3,
-      //       autoAlpha: 0,
-      //       ease: 'power2.inOut'
-      //     })
-      //   }
-      // });
+      gridItem.setAttribute('data-index', index.toString());
+
+      const state = Flip.getState(gridItem);
+      modalContentRef.current.appendChild(gridItem);
+
+      Flip.from(state, {
+        duration: 0.5,
+        ease: "power2.inOut",
+        absolute: true,
+        scale: true,
+        absoluteOnLeave: true,
+        zIndex: 1000,
+        toggleClass: "flipping",
+        onEnter: elements => {
+          gsap.set(elements, {
+            position: "absolute",
+            left: "50%",
+            top: "50%",
+            xPercent: -50,
+            yPercent: -50
+          });
+        },
+        onComplete: () => {
+          gsap.to(gridItem, {
+            scale: 1.5,
+            duration: 0.3,
+            ease: "back.out(1.7)"
+          });
+        }
+      });
     }
+
+    setSelectedPolaroid(polaroid);
+  };
+
+  const handleModalClose = (gridItem: Element  | null | undefined) => {
+    if (!gridItem) return;
+
+    const state = Flip.getState(gridItem);
+
+    const index = Number(gridItem.getAttribute('data-index'));
+    const originalParent = gridItemsRef.current[index];
+
+    if (originalParent) {
+      // Move back to original container
+      originalParent.appendChild(gridItem);
+
+      // Animate back to grid position
+      gsap.to(gridItem, {
+        scale: 1,
+        duration: 0.3,
+        ease: "power2.inOut",
+        onComplete: () => {
+          // Move back to original container
+          originalParent.appendChild(gridItem);
+        }
+      });
+    }
+
+    setSelectedPolaroid(null);
   }
 
   return (
@@ -38,7 +88,7 @@ export function PolaroidGrid({ polaroids }: PolaroidGridProps) {
           key={polaroid.id}
           ref={el => { gridItemsRef.current[index] = el; }}
           onClick={() => handlePolaroidClick(polaroid, index)}
-          className='cursor-pointer transform transition-all duration-300 hover:scale-105'>
+          className='cursor-pointer'>
           <Polaroid
             key={polaroid.id}
             id={polaroid.id}
@@ -50,18 +100,13 @@ export function PolaroidGrid({ polaroids }: PolaroidGridProps) {
       ))}
 
       <Modal
+        ref={modalContentRef}
         isOpen={selectedPolaroid !== null}
-        onClose={() => setSelectedPolaroid(null)}>
-          {selectedPolaroid && (
-            <Polaroid
-              id={selectedPolaroid.id}
-              src={selectedPolaroid.src}
-              alt={selectedPolaroid.alt}
-              caption={selectedPolaroid.caption}
-            />
-          )}
+        onClose={() => {
+          const gridItem = modalContentRef.current?.querySelector('.polaroid');
+          handleModalClose(gridItem);
+        }}>
       </Modal>
     </div>
-  )
-
+  );
 }
