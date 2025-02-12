@@ -4,7 +4,6 @@ import React, { useRef, useState, useEffect } from "react";
 import { PolaroidProps } from "./types";
 import gsap from "gsap";
 import { Draggable } from "gsap/Draggable";
-import { getNextFlightSegmentPath } from "next/dist/client/flight-data-helpers";
 
 export const Polaroid = ({ id, src, alt, caption }: PolaroidProps) => {
 
@@ -141,6 +140,7 @@ export const Polaroid = ({ id, src, alt, caption }: PolaroidProps) => {
   return (
     <div
       ref={polaroidRef}
+      id={id}
       className="polaroid bg-white p-4 w-[260px] pb-24 shadow-lg"
       style={{
         transformStyle: 'preserve-3d',
