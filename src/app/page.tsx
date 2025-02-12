@@ -23,6 +23,7 @@ export default async function Home() {
   const query = await getScanned();
   const polaroids = query.data;
   const totalPictures = polaroids?.length || 0;
+  console.log(polaroids);
 
   return (
     <main className="min-h-screen flex items-center justify-center p-8 overflow-hidden">
