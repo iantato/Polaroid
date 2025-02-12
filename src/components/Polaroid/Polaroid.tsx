@@ -12,6 +12,24 @@ export const Polaroid = ({ id, src, alt, caption, isDraggable = false, resetFlip
   const [isAnimating, setIsAnimating] = useState(false);
   const dragInstance = useRef<Draggable | null>(null);
 
+  const handleTouchMove = (e: TouchEvent) => {
+    if (isDraggable) {
+      e.preventDefault();
+    }
+  };
+
+  useEffect(() => {
+    if (isDraggable) {
+      document.body.style.overflow = 'hidden';
+      document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      document.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, [isDraggable]);
+
   useEffect(() => {
     if (resetFlip && isFlipped) {
       setIsFlipped(false);
@@ -22,6 +40,9 @@ export const Polaroid = ({ id, src, alt, caption, isDraggable = false, resetFlip
         type: 'x',
         inertia: true,
         allowEventDefault: true,
+        onDragStart: function() {
+          document.body.style.overflow = 'hidden';
+        },
         onDrag: function() {
           if (isAnimating) return;
 
@@ -119,7 +140,7 @@ export const Polaroid = ({ id, src, alt, caption, isDraggable = false, resetFlip
           alt={alt}
           fill
           draggable={false}
-          className="object-cover select-none"
+          className="image-object object-cover select-none"
           sizes="500px"
         />
       </div>

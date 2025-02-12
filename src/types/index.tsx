@@ -29,3 +29,7 @@ export interface Query<T> {
     query: string;
     values: any[];
 }
+
+export interface SearchParams {
+    id: number | undefined
+}

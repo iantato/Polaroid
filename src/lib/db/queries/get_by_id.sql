@@ -1,0 +1,1 @@
+SELECT * FROM polaroids WHERE id = $1;

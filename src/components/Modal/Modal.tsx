@@ -3,7 +3,7 @@ import { ModalProps } from "./types";
 import React, { forwardRef, useEffect, useRef } from 'react';
 import gsap from 'gsap';
 
-export const Modal = forwardRef<HTMLDivElement, ModalProps>(({ isOpen, onClose }, ref) => {
+export const Modal = forwardRef<HTMLDivElement, ModalProps>(({ isOpen, onClose, children }, ref) => {
   const overlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,6 +30,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(({ isOpen, onClose }
         className="relative z-50"
         onClick={(e) => e.stopPropagation()}
         >
+        {children}
       </div>
     </div>
   );
