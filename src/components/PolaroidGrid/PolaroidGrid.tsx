@@ -9,22 +9,27 @@ import gsap from 'gsap';
 export function PolaroidGrid({ polaroids }: PolaroidGridProps) {
 
   const [selectedPolaroid, setSelectedPolaroid] = useState<PolaroidProps | null>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
   const gridItemsRef = useRef<(HTMLDivElement | null)[]>([]);
   const modalContentRef = useRef<HTMLDivElement>(null);
 
   const handlePolaroidClick = (polaroid: PolaroidProps, index: number) => {
+    if (isAnimating) return;
     const gridItem = gridItemsRef.current[index]?.querySelector('.polaroid');
 
     if (gridItem && modalContentRef.current) {
-
+      setIsAnimating(true);
       gridItem.setAttribute('data-index', index.toString());
-
       modalContentRef.current.appendChild(gridItem);
 
       gsap.to(gridItem, {
         scale: 1.5,
+        zIndex: 50,
         duration: 0.3,
-        ease: "back.out(1.7)"
+        ease: "back.out(1.7)",
+        onComplete: () => {
+          setIsAnimating(false);
+        }
       });
     }
 
@@ -32,13 +37,18 @@ export function PolaroidGrid({ polaroids }: PolaroidGridProps) {
   };
 
   const handleModalClose = (gridItem: Element  | null | undefined) => {
-    if (!gridItem) return;
+    if (!gridItem || isAnimating) return;
+    setIsAnimating(true);
 
     const index = Number(gridItem.getAttribute('data-index'));
     const originalParent = gridItemsRef.current[index];
 
     if (originalParent) {
       // Move back to original container
+      gsap.set(gridItem, {
+        zIndex: 1000,
+        position: 'relative'  // Add relative positioning
+      });
       originalParent.appendChild(gridItem);
 
       // Animate back to grid position
@@ -47,8 +57,16 @@ export function PolaroidGrid({ polaroids }: PolaroidGridProps) {
         duration: 0.3,
         ease: "power2.inOut",
         onComplete: () => {
-          // Move back to original container
-          originalParent.appendChild(gridItem);
+          // Only reset z-index after animation completes
+          gsap.to(gridItem, {
+            position: 'relative',
+            zIndex: 1,
+            duration: 0,
+            clearProps: "transform, position", // Clear transform properties
+            onComplete: () => {
+              setIsAnimating(false);
+            }
+          });
         }
       });
     }
