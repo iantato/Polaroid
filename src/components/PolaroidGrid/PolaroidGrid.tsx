@@ -5,10 +5,8 @@ import { Polaroid } from "../Polaroid";
 import { PolaroidProps } from "../Polaroid/types";
 import { PolaroidGridProps } from "./types";
 import gsap from 'gsap';
-import { Flip } from "gsap/dist/Flip";
 
 export function PolaroidGrid({ polaroids }: PolaroidGridProps) {
-  gsap.registerPlugin(Flip);
 
   const [selectedPolaroid, setSelectedPolaroid] = useState<PolaroidProps | null>(null);
   const gridItemsRef = useRef<(HTMLDivElement | null)[]>([]);
@@ -21,33 +19,12 @@ export function PolaroidGrid({ polaroids }: PolaroidGridProps) {
 
       gridItem.setAttribute('data-index', index.toString());
 
-      const state = Flip.getState(gridItem);
       modalContentRef.current.appendChild(gridItem);
 
-      Flip.from(state, {
-        duration: 0.5,
-        ease: "power2.inOut",
-        absolute: true,
-        scale: true,
-        absoluteOnLeave: true,
-        zIndex: 1000,
-        toggleClass: "flipping",
-        onEnter: elements => {
-          gsap.set(elements, {
-            position: "absolute",
-            left: "50%",
-            top: "50%",
-            xPercent: -50,
-            yPercent: -50
-          });
-        },
-        onComplete: () => {
-          gsap.to(gridItem, {
-            scale: 1.5,
-            duration: 0.3,
-            ease: "back.out(1.7)"
-          });
-        }
+      gsap.to(gridItem, {
+        scale: 1.5,
+        duration: 0.3,
+        ease: "back.out(1.7)"
       });
     }
 
@@ -56,8 +33,6 @@ export function PolaroidGrid({ polaroids }: PolaroidGridProps) {
 
   const handleModalClose = (gridItem: Element  | null | undefined) => {
     if (!gridItem) return;
-
-    const state = Flip.getState(gridItem);
 
     const index = Number(gridItem.getAttribute('data-index'));
     const originalParent = gridItemsRef.current[index];
