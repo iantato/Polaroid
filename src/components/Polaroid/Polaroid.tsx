@@ -11,9 +11,34 @@ export const Polaroid = ({ id, src, alt, caption, isDraggable = false, resetFlip
   const [isFlipped, setIsFlipped] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const dragInstance = useRef<Draggable | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
+  // Check if device is mobile
+  useEffect(() => {
+    setIsMobile(window.innerWidth <= 768);
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleClick = () => {
+    if (!isMobile || isAnimating || !isDraggable) return;
+
+    setIsAnimating(true);
+    gsap.to(polaroidRef.current, {
+      rotationY: isFlipped ? 0 : 180,
+      duration: 0.6,
+      ease: "power2.inOut",
+      onComplete: () => {
+        setIsFlipped(!isFlipped);
+        setIsAnimating(false);
+      }
+    });
+  };
+
+  // Existing touch move handler
   const handleTouchMove = (e: TouchEvent) => {
-    if (isDraggable) {
+    if (isDraggable && !isMobile) {
       e.preventDefault();
     }
   };
@@ -35,34 +60,31 @@ export const Polaroid = ({ id, src, alt, caption, isDraggable = false, resetFlip
       setIsFlipped(false);
     }
 
-    if (isDraggable) {
+    if (isDraggable && !isMobile) {
+      // Only initialize dragging on non-mobile devices
       dragInstance.current = Draggable.create(polaroidRef.current, {
         type: 'x',
         inertia: true,
-        allowEventDefault: false, // Changed to false to prevent default touch behavior
-        dragClickables: true, // Allow dragging on clickable elements
-        dragResistance: 0.5, // Add some resistance to make it feel better on mobile
+        allowContextMenu: true,
+        allowEventDefault: true, // Changed to true for Chrome
+        dragClickables: true,
+        dragResistance: 0.5,
         onDragStart: function() {
-          document.body.style.overflow = 'hidden';
           setIsAnimating(true);
+          // Don't modify body overflow here
         },
         onDrag: function() {
           if (isAnimating) return;
 
           const dragDistance = this.x;
           const baseRotation = isFlipped ? 180 : 0;
-          // Adjusted rotation sensitivity for mobile
-          const rotation = baseRotation + (dragDistance * 0.8); // Increased multiplier for mobile
+          const rotation = baseRotation + (dragDistance * 0.8);
 
-          if (rotation <= 0 || rotation >= 180) {
-            gsap.set(polaroidRef.current, {
-              x: 0
-            });
-            return;
-          }
+          // Add bounds for rotation
+          const boundedRotation = Math.max(0, Math.min(180, rotation));
 
           gsap.set(polaroidRef.current, {
-            rotationY: rotation,
+            rotationY: boundedRotation,
             x: 0
           });
         },
@@ -112,14 +134,53 @@ export const Polaroid = ({ id, src, alt, caption, isDraggable = false, resetFlip
     return () => {
       dragInstance.current?.kill();
     };
-  }, [isFlipped, isDraggable, resetFlip]);
+  }, [isFlipped, isDraggable, resetFlip, isMobile]);
+
+  // Add touch event handlers
+  useEffect(() => {
+    const element = polaroidRef.current;
+    if (!element || !isDraggable) return;
+
+    let startX = 0;
+    let currentX = 0;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      startX = e.touches[0].clientX;
+      currentX = startX;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isAnimating) {
+        currentX = e.touches[0].clientX;
+        const delta = currentX - startX;
+        const baseRotation = isFlipped ? 180 : 0;
+        const rotation = baseRotation + (delta * 0.8);
+
+        if (rotation >= 0 && rotation <= 180) {
+          gsap.set(element, {
+            rotationY: rotation
+          });
+        }
+      }
+    };
+
+    element.addEventListener('touchstart', handleTouchStart, { passive: true });
+    element.addEventListener('touchmove', handleTouchMove, { passive: true });
+
+    return () => {
+      element.removeEventListener('touchstart', handleTouchStart);
+      element.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, [isDraggable, isAnimating, isFlipped]);
 
   return (
     <>
       <div
         ref={polaroidRef}
         id={id}
-        className={`polaroid bg-white p-4 w-[260px] pb-24 shadow-lg ${isAnimating ? 'pointer-events-none' : ''}`}
+        onClick={handleClick}
+        className={`polaroid bg-white p-4 w-[260px] pb-24 shadow-lg ${isAnimating ? 'pointer-events-none' : ''}
+          ${isDraggable && isMobile ? 'cursor-pointer' : ''}`}
         style={{
           transformStyle: 'preserve-3d',
           perspective: '1000px',
