@@ -2,11 +2,11 @@ import { NextResponse } from 'next/server';
 import { getMusic } from '@/lib/db/queries';
 
 export async function GET(
-  request: Request, { params }: {params: Promise<{ slug: string }>}
+  request: Request, { params }: {params: Promise<{ id: string }>}
 ) {
   try {
-    const { slug } = await params;
-    const result = await getMusic(parseInt(slug));
+    const { id } = await params;
+    const result = await getMusic(parseInt(id));
 
     return NextResponse.json({
       success: true,

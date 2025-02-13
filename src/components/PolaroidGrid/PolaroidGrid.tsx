@@ -244,7 +244,13 @@ export function PolaroidGrid() {
 
 
   return (
-    <div className='grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3'>
+    <div className={`grid gap-6 grid-cols-1 ${
+      polaroids.length >= 3
+        ? 'md:grid-cols-2 lg:grid-cols-3'
+        : polaroids.length === 2
+          ? 'md:grid-cols-2'
+          : ''
+    }`}>
       {(polaroids || []).map((polaroid, index) => (
         <div
           key={polaroid.id}
