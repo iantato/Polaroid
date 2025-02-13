@@ -4,12 +4,11 @@ import { AudioBarProps } from './types';
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 
-export const AudioBar = ({ audioSrc, thumbnail, title, artist, autoPlay = false }: AudioBarProps) => {
+export const AudioBar = ({ audioSrc, title, artist, autoPlay = false }: AudioBarProps) => {
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
-  const [isLoaded, setIsLoaded] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
 
@@ -27,7 +26,6 @@ export const AudioBar = ({ audioSrc, thumbnail, title, artist, autoPlay = false 
     setIsPlaying(false);
 
     const handleCanPlay = () => {
-      setIsLoaded(true);
       if (autoPlay) {
         // Set volume to low before attempting to play
         audio.volume = 0.2;

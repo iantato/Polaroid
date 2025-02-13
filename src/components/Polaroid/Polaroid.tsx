@@ -18,19 +18,6 @@ export const Polaroid = ({ id, src, alt, caption, isDraggable = false, resetFlip
     }
   };
 
-  // useEffect(() => {
-  //   if (music_id) {
-  //     async function fetchMusic() {
-  //       const response = await fetch(`/api/music/${music_id}`);
-  //       const data = await response.json();
-  //       if (!data.success) return;
-
-  //       setAudioProps(data.data);
-  //     }
-  //     fetchMusic();
-  //   }
-  // }, [music_id])
-
   useEffect(() => {
     if (isDraggable) {
       document.body.style.overflow = 'hidden';

@@ -1,4 +1,3 @@
-import { ReactNode } from "react";
 import { AudioBarProps } from "../AudioBar/types";
 
 export interface ModalProps {

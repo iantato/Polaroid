@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server';
-import { getPool } from '@/lib/db';
-import { SQL_QUERIES } from '@/lib/db/utility';
 import { getMusic } from '@/lib/db/queries';
 
 export async function GET( request: Request, { params }: { params: { id: string } }) {

@@ -1,11 +1,10 @@
 'use client';
-import { use, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Modal } from "../Modal";
 import { Polaroid } from "../Polaroid";
 import { PolaroidProps } from "../Polaroid/types";
 import { useSearchParams } from "next/navigation";
 import gsap from 'gsap';
-import { AudioBar } from "../AudioBar";
 import { AudioBarProps } from "../AudioBar/types";
 
 export function PolaroidGrid() {
@@ -135,7 +134,7 @@ export function PolaroidGrid() {
         }
       }, 100);
 
-      const updateResponse = await fetch(`/api/scan/${newPolaroidId}/update`, {
+      await fetch(`/api/scan/${newPolaroidId}/update`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ scanned: true })
@@ -159,8 +158,7 @@ export function PolaroidGrid() {
     if (gridItem && modalContentRef.current) {
       setIsAnimating(true);
 
-      // Get music from cache or fetch if not available
-      let musicData:AudioBarProps = musicCache[polaroid.id];
+      const musicData:AudioBarProps = musicCache[polaroid.id];
 
       setSelectedMusic(musicData || null);
 
