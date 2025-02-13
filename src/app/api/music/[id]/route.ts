@@ -1,12 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getMusic } from '@/lib/db/queries';
 
+interface RouteParams {
+  params: {
+    id: string;
+  }
+}
+
 export async function GET(
-  request: NextRequest,
-  context: { params: { id: string } }
+  _: Request,
+  { params }: RouteParams
 ) {
   try {
-    const result = await getMusic(parseInt(context.params.id));
+    const result = await getMusic(parseInt(params.id));
 
     return NextResponse.json({
       success: true,
