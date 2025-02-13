@@ -18,6 +18,19 @@ export const Polaroid = ({ id, src, alt, caption, isDraggable = false, resetFlip
     }
   };
 
+  // useEffect(() => {
+  //   if (music_id) {
+  //     async function fetchMusic() {
+  //       const response = await fetch(`/api/music/${music_id}`);
+  //       const data = await response.json();
+  //       if (!data.success) return;
+
+  //       setAudioProps(data.data);
+  //     }
+  //     fetchMusic();
+  //   }
+  // }, [music_id])
+
   useEffect(() => {
     if (isDraggable) {
       document.body.style.overflow = 'hidden';
@@ -121,38 +134,40 @@ export const Polaroid = ({ id, src, alt, caption, isDraggable = false, resetFlip
   }, [isFlipped, isDraggable, resetFlip]);
 
   return (
-    <div
-      ref={polaroidRef}
-      id={id}
-      className={`polaroid bg-white p-4 w-[260px] pb-24 shadow-lg ${isAnimating ? 'pointer-events-none' : ''}`}
-      style={{
-        transformStyle: 'preserve-3d',
-        perspective: '1000px',
-        backfaceVisibility: 'hidden'
-      }}>
-      {/* Front side with image */}
+    <>
       <div
-        className="relative w-full aspect-square"
-        style={{ backfaceVisibility: 'hidden' }}
-      >
-        <Image
-          src={src}
-          alt={alt}
-          fill
-          draggable={false}
-          className="image-object object-cover select-none"
-          sizes="500px"
-        />
-      </div>
-
-      <div
-        className="absolute inset-0 bg-white p-4 flex items-center justify-center"
+        ref={polaroidRef}
+        id={id}
+        className={`polaroid bg-white p-4 w-[260px] pb-24 shadow-lg ${isAnimating ? 'pointer-events-none' : ''}`}
         style={{
-          transform: 'rotateY(180deg)',
+          transformStyle: 'preserve-3d',
+          perspective: '1000px',
           backfaceVisibility: 'hidden'
         }}>
-        <p className="text-center font-mono text-black text-xs">{caption}</p>
+        {/* Front side with image */}
+        <div
+          className="relative w-full aspect-square"
+          style={{ backfaceVisibility: 'hidden' }}
+        >
+          <Image
+            src={src}
+            alt={alt}
+            fill
+            draggable={false}
+            className="image-object object-cover select-none"
+            sizes="500px"
+          />
+        </div>
+
+        <div
+          className="absolute inset-0 bg-white p-4 flex items-center justify-center"
+          style={{
+            transform: 'rotateY(180deg)',
+            backfaceVisibility: 'hidden'
+          }}>
+          <p className="text-center font-mono text-black text-xs">{caption}</p>
+        </div>
       </div>
-    </div>
+    </>
   );
 };

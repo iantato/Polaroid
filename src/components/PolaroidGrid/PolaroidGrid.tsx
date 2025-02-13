@@ -5,11 +5,15 @@ import { Polaroid } from "../Polaroid";
 import { PolaroidProps } from "../Polaroid/types";
 import { useSearchParams } from "next/navigation";
 import gsap from 'gsap';
+import { AudioBar } from "../AudioBar";
+import { AudioBarProps } from "../AudioBar/types";
 
 export function PolaroidGrid() {
 
   const [polaroids, setPolaroids] = useState<PolaroidProps[]>([]);
+  const [musicCache, setMusicCache] = useState<Record<string, AudioBarProps>>({});
   const [selectedPolaroid, setSelectedPolaroid] = useState<PolaroidProps | null>(null);
+  const [selectedMusic, setSelectedMusic] = useState<AudioBarProps | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [shouldResetFlip, setShouldResetFlip] = useState(false);
   const gridItemsRef = useRef<(HTMLDivElement | null)[]>([]);
@@ -21,14 +25,27 @@ export function PolaroidGrid() {
 
   // Fetch all the scanned polaroids.
   useEffect(() => {
-    async function fetchPolaroids() {
+    async function fetchPolaroidsAndMusic() {
       const response = await fetch('/api/polaroids')
       const data = await response.json();
       if (!data.success) return;
       setPolaroids(data.data);
+
+      const musicData: Record<string, AudioBarProps> = {};
+      await Promise.all(
+        data.data.map(async (polaroid: PolaroidProps) => {
+          const music = await getMusic(parseInt(polaroid.id));
+          if (music) {
+            musicData[polaroid.id] = music[0];
+          }
+        })
+      );
+
+      setMusicCache(musicData);
       initialFetchDoneRef.current = true;
     }
-    fetchPolaroids();
+
+    fetchPolaroidsAndMusic();
   }, [])
 
   // Using the urlSearchParams, we can check if there is a new
@@ -128,12 +145,25 @@ export function PolaroidGrid() {
     checkNewPolaroid();
   }, [initialFetchDoneRef.current, newPolaroidId])
 
+  async function getMusic(id: number) {
+    const response = await fetch(`/api/music/${id}`);
+    const data = await response.json();
+    if (!data.success) return;
+    else return data.data;
+  }
+
   const handlePolaroidClick = (polaroid: PolaroidProps, index: number) => {
     if (isAnimating) return;
     const gridItem = gridItemsRef.current[index]?.querySelector('.polaroid');
 
     if (gridItem && modalContentRef.current) {
       setIsAnimating(true);
+
+      // Get music from cache or fetch if not available
+      let musicData:AudioBarProps = musicCache[polaroid.id];
+
+      setSelectedMusic(musicData || null);
+
       gridItem.setAttribute('data-index', index.toString());
       modalContentRef.current.appendChild(gridItem);
 
@@ -155,6 +185,7 @@ export function PolaroidGrid() {
     if (!gridItem || isAnimating) return;
     setIsAnimating(true);
     setShouldResetFlip(true);
+    setSelectedMusic(null); // Clear the selected music when closing
 
     const index = Number(gridItem.getAttribute('data-index'));
     const originalParent = gridItemsRef.current[index];
@@ -213,6 +244,7 @@ export function PolaroidGrid() {
     setSelectedPolaroid(null);
   }
 
+
   return (
     <div className='grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3'>
       {(polaroids || []).map((polaroid, index) => (
@@ -236,10 +268,10 @@ export function PolaroidGrid() {
       <Modal
         ref={modalContentRef}
         isOpen={selectedPolaroid !== null}
+        musicData={selectedMusic || undefined}
         onClose={() => {
           const gridItem = modalContentRef.current?.querySelector('.polaroid');
           if (newPolaroidId && selectedPolaroid?.id === newPolaroidId) {
-            // Handle closing for new polaroid
             setPolaroids(prev => [...prev, selectedPolaroid]);
           }
           handleModalClose(gridItem);

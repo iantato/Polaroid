@@ -1,9 +1,10 @@
 'use client';
-import { ModalProps } from "./types";
 import React, { forwardRef, useEffect, useRef } from 'react';
+import { AudioBar } from "../AudioBar";
+import { ModalProps } from "./types";
 import gsap from 'gsap';
 
-export const Modal = forwardRef<HTMLDivElement, ModalProps>(({ isOpen, onClose, children }, ref) => {
+export const Modal = forwardRef<HTMLDivElement, ModalProps>(({ isOpen, onClose, children, musicData }, ref) => {
   const overlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -27,10 +28,15 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(({ isOpen, onClose, 
 
       <div
         ref={ref}
-        className="relative z-50"
+        className="relative z-50 flex flex-col items-center gap-6 transform -translate-y-[10%]" // Added transform to move everything up
         onClick={(e) => e.stopPropagation()}
-        >
+      >
         {children}
+        {musicData?.audioSrc && (
+          <div className="transform translate-y-[80px]">
+            <AudioBar audioSrc={musicData.audioSrc} title={musicData.title} artist={musicData.artist} autoPlay={isOpen}/>
+          </div>
+        )}
       </div>
     </div>
   );

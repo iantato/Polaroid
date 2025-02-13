@@ -1,6 +1,7 @@
 import { getById, getScanned } from '@/lib/db/queries';
 import { PolaroidGrid } from "@/components/PolaroidGrid";
 import { SearchParams } from '@/types';
+import { AudioBar } from '@/components/AudioBar';
 
 export default async function Home({ id }: SearchParams) {
 
@@ -20,6 +21,7 @@ export default async function Home({ id }: SearchParams) {
   return (
     <main className="min-h-screen flex items-center justify-center p-8 overflow-hidden">
       <PolaroidGrid></PolaroidGrid>
+      {/* <AudioBar audioUrl='https://hybgkn1asiylekyw.public.blob.vercel-storage.com/mateo-pinipili-ZaIrtf7R9zimAgtgxWZPaX5xEnMIoL.mp3'></AudioBar> */}
     </main>
   );
 }

@@ -1,21 +1,22 @@
 import { NextResponse } from 'next/server';
 import { getPool } from '@/lib/db';
 import { SQL_QUERIES } from '@/lib/db/utility';
+import { getMusic } from '@/lib/db/queries';
 
-export async function POST( request: Request, { params }: { params: { id: string } }) {
+export async function GET( request: Request, { params }: { params: { id: string } }) {
   try {
     const { id } = await params;
-    const pool = getPool();
-    await pool.query(SQL_QUERIES.UPDATE_SCANNED, [id]);
+    const result = await getMusic(parseInt(id));
 
     return NextResponse.json({
-      success: true
+      success: true,
+      data: result.data
     });
   } catch (error) {
     console.error('API Error:', error);
     return NextResponse.json({
       success: false,
-      error: 'Failed to update polaroid'
+      error: 'Failed to fetch polaroids'
     }, { status: 500 });
   }
 }

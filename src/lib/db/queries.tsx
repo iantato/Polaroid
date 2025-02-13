@@ -49,3 +49,19 @@ export async function getScanned(): Promise<ApiResponse<Polaroid[]>> {
     };
   }
 }
+
+export async function getMusic(id: number): Promise<ApiResponse<Polaroid[]>> {
+  try {
+    const pool = getPool();
+    const result = await pool.query(SQL_QUERIES.GET_MUSIC, [id]);
+    return {
+      success: true,
+      data: result.rows
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch music'
+    };
+  }
+}
