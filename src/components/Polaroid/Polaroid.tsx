@@ -11,9 +11,34 @@ export const Polaroid = ({ id, src, alt, caption, isDraggable = false, resetFlip
   const [isFlipped, setIsFlipped] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const dragInstance = useRef<Draggable | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
+  // Check if device is mobile
+  useEffect(() => {
+    setIsMobile(window.innerWidth <= 768);
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleClick = () => {
+    if (!isMobile || isAnimating || !isDraggable) return;
+
+    setIsAnimating(true);
+    gsap.to(polaroidRef.current, {
+      rotationY: isFlipped ? 0 : 180,
+      duration: 0.6,
+      ease: "power2.inOut",
+      onComplete: () => {
+        setIsFlipped(!isFlipped);
+        setIsAnimating(false);
+      }
+    });
+  };
+
+  // Existing touch move handler
   const handleTouchMove = (e: TouchEvent) => {
-    if (isDraggable) {
+    if (isDraggable && !isMobile) {
       e.preventDefault();
     }
   };
@@ -35,50 +60,47 @@ export const Polaroid = ({ id, src, alt, caption, isDraggable = false, resetFlip
       setIsFlipped(false);
     }
 
-    if (isDraggable) {
+    if (isDraggable && !isMobile) {
+      // Only initialize dragging on non-mobile devices
       dragInstance.current = Draggable.create(polaroidRef.current, {
         type: 'x',
         inertia: true,
-        allowEventDefault: true,
+        allowEventDefault: false, // Changed to false to prevent default touch behavior
+        dragClickables: true, // Allow dragging on clickable elements
+        dragResistance: 0.5, // Add some resistance to make it feel better on mobile
         onDragStart: function() {
           document.body.style.overflow = 'hidden';
+          setIsAnimating(true);
         },
         onDrag: function() {
           if (isAnimating) return;
 
           const dragDistance = this.x;
           const baseRotation = isFlipped ? 180 : 0;
-          // Make rotation smoother by reducing the multiplier
-          const rotation = baseRotation + (dragDistance * 0.5);
+          // Adjusted rotation sensitivity for mobile
+          const rotation = baseRotation + (dragDistance * 0.8); // Increased multiplier for mobile
 
           if (rotation <= 0 || rotation >= 180) {
             gsap.set(polaroidRef.current, {
               x: 0
-            })
+            });
             return;
           }
 
           gsap.set(polaroidRef.current, {
             rotationY: rotation,
             x: 0
-          })
+          });
         },
         onDragEnd: function() {
-          if (isAnimating) return;
-
-          setIsAnimating(true);
-          dragInstance.current?.disable();
-
           const dragDistance = this.x;
           const baseRotation = isFlipped ? 180 : 0;
-          const rotation = baseRotation + (dragDistance * 0.5);
-          let targetRotation = 0;
+          const rotation = baseRotation + (dragDistance * 0.8);
 
-          // Smoother animation with better easing
-          if (rotation >= 40 && !isFlipped) {
-            targetRotation = 180;
+          // Reduced threshold for flipping on mobile
+          if (rotation >= 30 && !isFlipped) { // Reduced from 40 to 30
             gsap.to(polaroidRef.current, {
-              rotationY: targetRotation,
+              rotationY: 180,
               duration: 0.3,
               ease: "power2.inOut",
               onComplete: () => {
@@ -87,10 +109,9 @@ export const Polaroid = ({ id, src, alt, caption, isDraggable = false, resetFlip
                 dragInstance.current?.enable();
               }
             });
-          } else if (rotation <= 140 && isFlipped) {
-            targetRotation = 0;
+          } else if (rotation <= 150 && isFlipped) { // Increased from 140 to 150
             gsap.to(polaroidRef.current, {
-              rotationY: targetRotation,
+              rotationY: 0,
               duration: 0.3,
               ease: "power2.inOut",
               onComplete: () => {
@@ -100,7 +121,6 @@ export const Polaroid = ({ id, src, alt, caption, isDraggable = false, resetFlip
               }
             });
           } else {
-            // Snap back animation
             gsap.to(polaroidRef.current, {
               rotationY: isFlipped ? 180 : 0,
               duration: 0.4,
@@ -118,14 +138,16 @@ export const Polaroid = ({ id, src, alt, caption, isDraggable = false, resetFlip
     return () => {
       dragInstance.current?.kill();
     };
-  }, [isFlipped, isDraggable, resetFlip]);
+  }, [isFlipped, isDraggable, resetFlip, isMobile]);
 
   return (
     <>
       <div
         ref={polaroidRef}
         id={id}
-        className={`polaroid bg-white p-4 w-[260px] pb-24 shadow-lg ${isAnimating ? 'pointer-events-none' : ''}`}
+        onClick={handleClick}
+        className={`polaroid bg-white p-4 w-[260px] pb-24 shadow-lg ${isAnimating ? 'pointer-events-none' : ''}
+          ${isDraggable && isMobile ? 'cursor-pointer' : ''}`}
         style={{
           transformStyle: 'preserve-3d',
           perspective: '1000px',
