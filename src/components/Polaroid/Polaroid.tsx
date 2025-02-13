@@ -65,26 +65,30 @@ export const Polaroid = ({ id, src, alt, caption, isDraggable = false, resetFlip
       dragInstance.current = Draggable.create(polaroidRef.current, {
         type: 'x',
         inertia: true,
-        allowContextMenu: true,
-        allowEventDefault: true, // Changed to true for Chrome
-        dragClickables: true,
-        dragResistance: 0.5,
+        allowEventDefault: false, // Changed to false to prevent default touch behavior
+        dragClickables: true, // Allow dragging on clickable elements
+        dragResistance: 0.5, // Add some resistance to make it feel better on mobile
         onDragStart: function() {
+          document.body.style.overflow = 'hidden';
           setIsAnimating(true);
-          // Don't modify body overflow here
         },
         onDrag: function() {
           if (isAnimating) return;
 
           const dragDistance = this.x;
           const baseRotation = isFlipped ? 180 : 0;
-          const rotation = baseRotation + (dragDistance * 0.8);
+          // Adjusted rotation sensitivity for mobile
+          const rotation = baseRotation + (dragDistance * 0.8); // Increased multiplier for mobile
 
-          // Add bounds for rotation
-          const boundedRotation = Math.max(0, Math.min(180, rotation));
+          if (rotation <= 0 || rotation >= 180) {
+            gsap.set(polaroidRef.current, {
+              x: 0
+            });
+            return;
+          }
 
           gsap.set(polaroidRef.current, {
-            rotationY: boundedRotation,
+            rotationY: rotation,
             x: 0
           });
         },
@@ -135,43 +139,6 @@ export const Polaroid = ({ id, src, alt, caption, isDraggable = false, resetFlip
       dragInstance.current?.kill();
     };
   }, [isFlipped, isDraggable, resetFlip, isMobile]);
-
-  // Add touch event handlers
-  useEffect(() => {
-    const element = polaroidRef.current;
-    if (!element || !isDraggable) return;
-
-    let startX = 0;
-    let currentX = 0;
-
-    const handleTouchStart = (e: TouchEvent) => {
-      startX = e.touches[0].clientX;
-      currentX = startX;
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (!isAnimating) {
-        currentX = e.touches[0].clientX;
-        const delta = currentX - startX;
-        const baseRotation = isFlipped ? 180 : 0;
-        const rotation = baseRotation + (delta * 0.8);
-
-        if (rotation >= 0 && rotation <= 180) {
-          gsap.set(element, {
-            rotationY: rotation
-          });
-        }
-      }
-    };
-
-    element.addEventListener('touchstart', handleTouchStart, { passive: true });
-    element.addEventListener('touchmove', handleTouchMove, { passive: true });
-
-    return () => {
-      element.removeEventListener('touchstart', handleTouchStart);
-      element.removeEventListener('touchmove', handleTouchMove);
-    };
-  }, [isDraggable, isAnimating, isFlipped]);
 
   return (
     <>
