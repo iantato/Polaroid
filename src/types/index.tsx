@@ -16,3 +16,7 @@ export interface Polaroid {
     scanned: boolean;
     scanned_at: Date;
 }
+
+export interface SearchParams {
+    id: number | undefined
+}
