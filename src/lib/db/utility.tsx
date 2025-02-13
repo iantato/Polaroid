@@ -6,6 +6,7 @@ export const SQL_QUERIES = {
   CREATE: loadSqlFile('/create.sql'),
   SCANNED: loadSqlFile('/get_scanned.sql'),
   GET_BY_ID: loadSqlFile('/get_by_id.sql'),
+  UPDATE_SCANNED: loadSqlFile('/update_scanned.sql'),
 } as const;
 
 function loadSqlFile(filename: string): string {

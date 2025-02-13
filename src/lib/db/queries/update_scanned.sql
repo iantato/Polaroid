@@ -1,0 +1,1 @@
+UPDATE polaroids SET scanned = true WHERE id = $1;

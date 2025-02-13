@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { Modal } from "../Modal";
 import { Polaroid } from "../Polaroid";
 import { PolaroidProps } from "../Polaroid/types";
@@ -10,111 +10,123 @@ export function PolaroidGrid() {
 
   const [polaroids, setPolaroids] = useState<PolaroidProps[]>([]);
   const [selectedPolaroid, setSelectedPolaroid] = useState<PolaroidProps | null>(null);
-  const [newPolaroid, setNewPolaroid] = useState<PolaroidProps | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [shouldResetFlip, setShouldResetFlip] = useState(false);
   const gridItemsRef = useRef<(HTMLDivElement | null)[]>([]);
   const modalContentRef = useRef<HTMLDivElement>(null);
-  const newPolaroidAddedRef = useRef(false);
+  const initialFetchDoneRef = useRef(false);
 
   const searchParams = useSearchParams();
   const newPolaroidId = searchParams.get('new');
 
-  useEffect(() => {
-    async function checkNewPolaroid() {
-      if (!newPolaroidId || newPolaroidAddedRef.current) return;
-
-      try {
-        const response = await fetch(`/api/scan/${newPolaroidId}`);
-        const data = await response.json();
-
-        if (data.success) {
-          const exists = polaroids.some(p => p.id == newPolaroidId);
-          if (!exists) {
-            setNewPolaroid(data.data);
-            setPolaroids(prev => [...prev, data.data]);
-            newPolaroidAddedRef.current = true;
-          }
-        }
-      } catch (error) {
-        console.error('Error checking new polaroid:', error);
-      }
-    }
-
-    checkNewPolaroid();
-  }, [newPolaroidId]);
-
-  // useEffect(() => {
-  //   const handleNewPolaroid = (polaroid: PolaroidProps) => {
-  //     const gridItem = document.getElementById(polaroid.id);
-
-  //     if (gridItem && newPolaroid) {
-  //       setIsAnimating(true);
-
-  //       gsap.set(gridItem, {
-  //         scale: 1.5
-  //       });
-
-  //       const tl = gsap.timeline({
-  //         onComplete: () => {
-  //           setIsAnimating(false);
-  //           setNewPolaroid(null);
-  //           setPolaroids(prev => {
-  //             const exists = prev.some(p => p.id === polaroid.id);
-  //             if (!exists) {
-  //               return [...prev, polaroid];
-  //             }
-  //             return prev;
-  //           });
-  //         }
-  //       });
-
-  //       tl.fromTo(
-  //         gridItem.querySelector('.image-object'),
-  //         {
-  //           webkitFilter: "brightness(0.)",
-  //           filter: "brightness(0)",
-  //         },
-  //         {
-  //           webkitFilter: "brightness(1)",
-  //           filter: "brightness(1)",
-  //           duration: 0.3,
-  //           delay: 1,
-  //           ease: "power2.inOut"
-  //         }
-  //       );
-
-  //       tl.to(gridItem, {
-  //         scale: 1,
-  //         duration: 0.3,
-  //         ease: "power2.inOut",
-  //         onComplete: () => {
-  //           gsap.to(gridItem, {
-  //             position: 'relative',
-  //             zIndex: 1,
-  //             duration: 0,
-  //             clearProps: "transform, position",
-  //           });
-  //         }
-  //       });
-
-  //     }
-  //   };
-
-  //   const exists = polaroids.some(p => p.id == newPolaroidId);
-  //   if (newPolaroid && !exists) {
-  //     handleNewPolaroid(newPolaroid);
-  //   }
-  // }, [newPolaroid]);
-
+  // Fetch all the scanned polaroids.
   useEffect(() => {
     async function fetchPolaroids() {
       const response = await fetch('/api/polaroids')
       const data = await response.json();
+      if (!data.success) return;
       setPolaroids(data.data);
+      initialFetchDoneRef.current = true;
     }
     fetchPolaroids();
-  }, [isAnimating])
+  }, [])
+
+  // Using the urlSearchParams, we can check if there is a new
+  // polaroid to add. This also updates the database.
+  useEffect(() => {
+    async function checkNewPolaroid() {
+      if (!initialFetchDoneRef.current || !newPolaroidId) return;
+
+      const response = await fetch(`/api/scan/${newPolaroidId}`);
+      const data = await response.json();
+      if (!data.success) return;
+
+      const exists = polaroids.some(p => p.id == newPolaroidId);
+      if (exists) return;
+
+      setPolaroids(prev => [...prev, data.data]);
+
+      setTimeout(() => {
+
+        const gridItem = document.getElementById(newPolaroidId);
+        if (gridItem) {
+          setIsAnimating(true);
+
+          gridItem.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          });
+
+          gsap.set(gridItem, {
+            scale: 1.5
+          });
+
+          const tl = gsap.timeline({
+            onComplete: () => {
+              setIsAnimating(false);
+              setShouldResetFlip(false);
+            }
+          });
+
+          tl.to(gridItem, {
+            x: 30,
+            duration: 0.2,
+            repeat: 3,
+            yoyo: true,
+            ease: "power2.inOut"
+          })
+          .to(gridItem, {
+            x: 30,
+            duration: 0.2,
+            repeat: 3,
+            yoyo: true,
+            ease: "power2.inOut"
+          })
+          .to(gridItem, {
+            x: 0, // Reset position
+            duration: 0.1
+          })
+
+          tl.fromTo(
+            gridItem.querySelector('.image-object'),
+            {
+              webkitFilter: "brightness(0.)",
+              filter: "brightness(0)",
+            },
+            {
+              webkitFilter: "brightness(1)",
+              filter: "brightness(1)",
+              duration: 0.3,
+              delay: 0.5,
+              ease: "power2.inOut"
+            }
+          );
+
+          tl.to(gridItem, {
+            scale: 1,
+            duration: 0.3,
+            ease: "power2.inOut",
+            onComplete: () => {
+              gsap.to(gridItem, {
+                position: 'relative',
+                zIndex: 1,
+                duration: 0,
+                clearProps: "transform, position",
+              });
+            }
+          });
+        }
+      }, 100);
+
+      const updateResponse = await fetch(`/api/scan/${newPolaroidId}/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scanned: true })
+      });
+    }
+
+    checkNewPolaroid();
+  }, [initialFetchDoneRef.current, newPolaroidId])
 
   const handlePolaroidClick = (polaroid: PolaroidProps, index: number) => {
     if (isAnimating) return;
@@ -139,13 +151,6 @@ export function PolaroidGrid() {
     setSelectedPolaroid(polaroid);
   };
 
-  const handleNewPolaroidClose = () => {
-    // if (newPolaroid) {
-    //   setPolaroids(prev => [...prev, newPolaroid]);
-    //   setNewPolaroid(null);
-    // }
-  };
-
   const handleModalClose = (gridItem: Element | null | undefined) => {
     if (!gridItem || isAnimating) return;
     setIsAnimating(true);
@@ -158,6 +163,7 @@ export function PolaroidGrid() {
     const needsToFlip = currentRotation > 90;
 
     if (originalParent) {
+
       const tl = gsap.timeline({
         onComplete: () => {
           setIsAnimating(false);
@@ -172,6 +178,11 @@ export function PolaroidGrid() {
 
       originalParent.appendChild(gridItem);
 
+      gridItem.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+
       if (needsToFlip) {
         tl.to(gridItem, {
           rotationY: 0,
@@ -180,7 +191,7 @@ export function PolaroidGrid() {
       } else {
         tl.to(gridItem, {
           rotationY: 0,
-          duration: 0.2
+          duration: 0.3
         })
       }
 
@@ -234,21 +245,6 @@ export function PolaroidGrid() {
           handleModalClose(gridItem);
         }}>
       </Modal>
-
-      {/* <Modal
-        isOpen={newPolaroid !== null}
-        onClose={handleNewPolaroidClose}>
-        {newPolaroid && (
-        <Polaroid
-          key={newPolaroid.id}
-          id={newPolaroid.id}
-          src={newPolaroid.src}
-          alt={newPolaroid.alt}
-          caption={newPolaroid.caption}
-          isDraggable={false}
-        />
-      )}
-      </Modal> */}
     </div>
   );
 }
