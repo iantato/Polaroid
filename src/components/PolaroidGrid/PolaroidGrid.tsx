@@ -60,6 +60,16 @@ export function PolaroidGrid() {
       const exists = polaroids.some(p => p.id == newPolaroidId);
       if (exists) return;
 
+      // Fetch music data for the new polaroid
+      const music = await getMusic(parseInt(newPolaroidId));
+      if (music) {
+        // Update music cache with new polaroid's music
+        setMusicCache(prev => ({
+          ...prev,
+          [newPolaroidId]: music[0]
+        }));
+      }
+
       setPolaroids(prev => [...prev, data.data]);
 
       setTimeout(() => {
