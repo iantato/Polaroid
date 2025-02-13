@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getMusic } from '@/lib/db/queries';
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id : string } }
+  request: Request, { params }: {params: Promise<{ id: string }>}
 ) {
   try {
     const { id } = await params;
