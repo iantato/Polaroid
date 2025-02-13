@@ -2,11 +2,11 @@ import { NextResponse } from 'next/server';
 import { getPool } from '@/lib/db';
 import { SQL_QUERIES } from '@/lib/db/utility';
 
-export async function POST( request: Request, { params }: { params: { id: string } }) {
+export async function POST( request: Request, { params }: {params: Promise<{ slug: string }>}) {
   try {
-    const { id } = await params;
+    const { slug } = await params;
     const pool = getPool();
-    await pool.query(SQL_QUERIES.UPDATE_SCANNED, [id]);
+    await pool.query(SQL_QUERIES.UPDATE_SCANNED, [slug]);
 
     return NextResponse.json({
       success: true

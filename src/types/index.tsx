@@ -17,6 +17,13 @@ export interface Polaroid {
     scanned_at: Date;
 }
 
+// API Response Types.
+export interface ApiResponse<Object> {
+    success: boolean;
+    data?: Object;
+    error?: string;
+}
+
 export interface SearchParams {
     id: number | undefined
 }
