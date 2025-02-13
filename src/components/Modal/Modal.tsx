@@ -33,7 +33,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(({ isOpen, onClose, 
       >
         {children}
         {musicData?.audioSrc && (
-          <div className="transform translate-y-[100px]">
+          <div className="transform translate-y-[80px]">
             <AudioBar audioSrc={musicData.audioSrc} title={musicData.title} artist={musicData.artist} autoPlay={isOpen}/>
           </div>
         )}
