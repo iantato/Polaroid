@@ -152,7 +152,14 @@ export const Polaroid = ({ id, src, alt, caption, isDraggable = false, resetFlip
             transform: 'rotateY(180deg)',
             backfaceVisibility: 'hidden'
           }}>
-          <p className="text-center font-mono text-black text-xs">{caption}</p>
+          <p className="text-center font-mono text-black text-xs">
+          {caption?.split('\\n').map((line, i) => (
+            <React.Fragment key={i}>
+              {line}
+              {i !== caption?.split('\\n').length - 1 && <br />}
+            </React.Fragment>
+          ))}
+          </p>
         </div>
       </div>
     </>
