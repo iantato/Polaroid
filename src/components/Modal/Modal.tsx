@@ -28,12 +28,12 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(({ isOpen, onClose, 
 
       <div
         ref={ref}
-        className="relative z-50 flex flex-col items-center gap-6 transform -translate-y-[10%]" // Added transform to move everything up
+        className="relative z-50 flex flex-col items-center gap-6 transform"
         onClick={(e) => e.stopPropagation()}
       >
         {children}
         {musicData?.audioSrc && (
-          <div className="transform translate-y-[80px]">
+          <div className="transform translate-y-[100px]">
             <AudioBar audioSrc={musicData.audioSrc} title={musicData.title} artist={musicData.artist} autoPlay={isOpen}/>
           </div>
         )}
